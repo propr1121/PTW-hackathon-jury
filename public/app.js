@@ -259,7 +259,7 @@ function resultsBlock(R, opts={}){
   let h = '';
   const ties = R.ranking.filter(r=>r.rank<=3 && r.exactTie);
   if(ties.length) h += `<div class="banner warn"><span class="grow"><b>Tie on the podium.</b> ${ties.map(t=>esc(t.project)).join(', ')} are level on average score, Prototype &amp; Usefulness and User &amp; Problem. The jury needs to decide the order between them.</span></div>`;
-  else if(R.ranking.some(r=>r.rank<=3 && r.tiedOnAverage)) h += `<div class="banner info"><span class="grow">Some teams are level on average score. They were separated by average Prototype &amp; Usefulness, then User &amp; Problem.</span></div>`;
+  else if(R.ranking.some(r=>r.rank<=3 && r.tiedOnAverage)) h += `<div class="banner note"><span class="grow">Some teams are level on average score. They were separated by average Prototype &amp; Usefulness, then User &amp; Problem.</span></div>`;
   const label = p => p===1?'Overall winner':p===2?'2nd place':'3rd place';
   h += `<div class="podium">` + [1,2,3].map(p=>{
     const rs = top.filter(r=>r.rank===p);
@@ -640,7 +640,7 @@ function renderAdmin(){
     else h += `<div class="waiting"><h3 class="cond">${n} of ${A.jury.length} submitted</h3><p>${A.jury.filter(j=>!j.submitted).map(j=>esc(j.name)).join(', ')} still scoring.</p>${isAdm?'<p>If a judge can\'t submit, you can show a provisional result from the judges who have.</p><button class="btn" data-force="1">Show provisional results</button>':''}</div>`;
   }
   if(adminTab==='manage' && isAdm){
-    h += `<div class="banner info"><span class="grow">Reopen a judge's scorecard on their behalf:</span>${A.jury.filter(j=>j.submitted).map(j=>`<button class="btn sm" data-reopen="${j.id}">Reopen ${esc(j.name.split(' ')[0])}</button>`).join('') || '<span style="color:var(--muted);font-size:13px">nobody has submitted yet</span>'}</div>`;
+    h += `<div class="banner note"><span class="grow">Reopen a judge's scorecard on their behalf:</span>${A.jury.filter(j=>j.submitted).map(j=>`<button class="btn sm" data-reopen="${j.id}">Reopen ${esc(j.name.split(' ')[0])}</button>`).join('') || '<span style="color:var(--muted);font-size:13px">nobody has submitted yet</span>'}</div>`;
     h += `<h3 class="cond sec">Entries (${A.entries.length})</h3><div class="tablewrap"><table><thead><tr><th>#</th><th>Project</th><th>Team</th><th>Prototype</th><th></th></tr></thead><tbody>` +
       (A.entries.length ? A.entries.map((e,i)=>`<tr><td>${i+1}</td><td class="proj"><b>${esc(e.project)}</b></td><td>${esc(e.team)}</td><td>${firstLink(e)?`<a href="${esc(safeUrl(firstLink(e)))}" target="_blank" rel="noopener noreferrer">Open ↗</a>`:'—'}</td>
         <td style="text-align:right"><button class="btn sm ghost" data-edit="${i}">Edit</button> <button class="btn sm ghost" data-up="${i}" ${i===0?'disabled':''}>↑</button> <button class="btn sm danger" data-del="${i}">Delete</button></td></tr>`).join('')

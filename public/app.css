@@ -217,7 +217,7 @@ kbd{font-family:inherit;font-size:11px;border:1px solid var(--line2);border-bott
 .banner{border-radius:12px;padding:14px 16px;margin-bottom:16px;font-size:15px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 .banner .grow{flex:1;min-width:240px}
 .banner.ok{background:var(--green-soft);border:1px solid rgba(61,214,140,.4)}
-.banner.info{background:var(--blue-soft);border:1px solid rgba(91,141,239,.35)}
+.banner.note{background:var(--blue-soft);border:1px solid rgba(91,141,239,.35)}
 .banner.warn{background:var(--orange-soft);border:1px solid rgba(232,100,44,.4)}
 
 /* results */
