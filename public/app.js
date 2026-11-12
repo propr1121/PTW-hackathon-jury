@@ -17,6 +17,11 @@ const QMAP = [ // submission questions, aligned with the criteria
   { k:'q3', c:'var(--c3)', n:3, title:'Prototype & usefulness', sub:'A realistic scenario the prototype demonstrates' },
   { k:'q4', c:'var(--c4)', n:4, title:'Limits & next test', sub:"What works, what's simulated, what they'd test next" },
 ];
+const ICON = {
+  expand:'<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>',
+  play:'<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z" fill="currentColor" stroke="none"/></svg>',
+  upload:'<svg class="ic big" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M6 10l6-6 6 6M4 20h16"/></svg>',
+};
 const LEVELS = ['Not at all','Very poorly','Partially','Clearly','Very clearly','Exceptionally'];
 const LEVELS_FULL = ['Not at all','Very poorly','Partially','Clearly','Very clearly','Exceptionally clearly'];
 const LOGO = {
@@ -367,7 +372,7 @@ function linkify(t){ return esc(t).replace(/https?:\/\/[^\s<>"']+/g, m => { cons
 function firstLink(e){ const m = String(e.link||'').match(URL_RE); return m ? m[0].replace(/[.,;:!?]+$/,'') : ''; }
 function submissionBrief(e, i){
   return `<div class="linkrow">${firstLink(e)?`<a class="linkbtn" href="${esc(safeUrl(firstLink(e)))}" target="_blank" rel="noopener noreferrer">Open prototype ↗</a>`:'<span class="pill">No prototype link</span>'}
-    <button class="btn" data-show="${i}">⤢ Full submission</button></div>
+    <button class="btn" data-show="${i}">${ICON.expand} Full submission</button></div>
     <div class="access">${e.access ? `<b>Access:</b> ${esc(e.access)}` : ''}</div>
     ${urlsIn(e).length>1 || (urlsIn(e).length===1 && urlsIn(e)[0].url!==firstLink(e)) ? `<p class="sub-h">Links &amp; files (${urlsIn(e).length})</p>${resourceChips(e)}` : ''}
     <div class="answers">` + QMAP.filter(q=>e[q.k]).map((q,j)=>`<details ${j===0?'open':''}><summary>${q.n}. ${q.title}</summary><div class="a">${linkify(e[q.k])}</div></details>`).join('') +
@@ -383,7 +388,7 @@ function viewPre(){
   const [done,n] = phaseProgress('pre');
   let h = `<div class="intro"><div><h2 class="cond">Pre-demo review</h2>
     <p>Read each submission and try the prototype before Friday, then give your first impression. Only you can see these scores. Tap <b style="font-family:Georgia,serif;font-style:italic;color:var(--blue)">i</b> next to a criterion for Brainstorm's full scale. Tap a selected score again to clear it.</p></div>
-    <div style="display:flex;gap:8px;align-items:center"><span class="pill ${done===n?'ok':''}">${done}/${n} teams scored</span><button class="btn sm" data-show="0">⤢ Browse submissions</button></div></div>`;
+    <div style="display:flex;gap:8px;align-items:center"><span class="pill ${done===n?'ok':''}">${done}/${n} teams scored</span><button class="btn sm" data-show="0">${ICON.expand} Browse submissions</button></div></div>`;
   if(S.mine.submitted) h += lockedBanner();
   list.forEach((e,i) => {
     const sc = S.mine.scores[e.id] || {};
@@ -416,7 +421,7 @@ function viewLive(){
     return `<button class="pick ${i===liveIdx?'on':''}" data-live="${i}">${t!==null?'<span class="ok">✓</span>':''}${i+1}. ${esc(x.project||x.team)}</button>`;}).join('') + `</div>`;
   h += `<div class="stage"><div class="grid2">
       <div><div class="sub-h">Now presenting · team ${liveIdx+1} of ${list.length}</div><h3 class="cond">${esc(e.project||'Untitled project')}</h3><div class="team">${esc(e.team)}</div>
-        <div class="linkrow" style="margin-top:18px">${firstLink(e)?`<a class="linkbtn" href="${esc(safeUrl(firstLink(e)))}" target="_blank" rel="noopener noreferrer">Open prototype ↗</a>`:''}<button class="btn" data-show="${liveIdx}">⤢ Full submission</button></div>
+        <div class="linkrow" style="margin-top:18px">${firstLink(e)?`<a class="linkbtn" href="${esc(safeUrl(firstLink(e)))}" target="_blank" rel="noopener noreferrer">Open prototype ↗</a>`:''}<button class="btn" data-show="${liveIdx}">${ICON.expand} Full submission</button></div>
         <p class="sub-h" style="margin-top:20px">What teams were asked to show</p>
         <ol style="color:#d4d4d8;font-size:14px;padding-left:18px;margin:0 0 6px">
           <li>Who it's for and where they get stuck</li><li>What they learned that shaped their approach</li>
@@ -619,11 +624,11 @@ function renderAdmin(){
   h += `<section class="view">`;
   if(adminTab==='subs'){
     h += `<div class="intro"><div><h2 class="cond">Submissions</h2><p>Every team's submission, ready to read or present. Open one to see it full screen, and use ← → to move between teams.</p></div>
-      ${A.entries.length?`<button class="btn primary" data-show="0">▶ Present all</button>`:''}</div>` + gallery();
+      ${A.entries.length?`<button class="btn primary" data-show="0">${ICON.play} Present all</button>`:''}</div>` + gallery();
   }
   if(adminTab==='upload'){
     h += `<div class="intro"><div><h2 class="cond">Upload submissions</h2><p>Download the Google Form responses as <b>CSV</b> (or Excel) and drop the file here. You'll see a preview before anything changes. Uploading an updated file later adds new teams and refreshes existing ones, and it never removes judges' scores. Contact emails and phone numbers are not imported.</p></div></div>
-      <label class="drop" id="drop"><input type="file" id="file" accept=".csv,.xlsx,.xls,text/csv" hidden><div class="ic">⇪</div><h4 class="cond">Drop the submissions file here</h4><p>or click to choose a .csv or .xlsx file</p></label>`;
+      <label class="drop" id="drop"><input type="file" id="file" accept=".csv,.xlsx,.xls,text/csv" hidden><div class="ic">${ICON.upload}</div><h4 class="cond">Drop the submissions file here</h4><p>or click to choose a .csv or .xlsx file</p></label>`;
   }
   if(adminTab==='results'){
     h += `<div class="intro"><div><h2 class="cond">Results</h2><p>Judges' scores stay hidden until all ${A.jury.length} have submitted. The ranking then appears here automatically.</p></div><button class="btn" data-refresh="1">↻ Refresh</button></div>`;
