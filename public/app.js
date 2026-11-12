@@ -654,7 +654,7 @@ function mapRows(rows){
   for(const r of clean.slice(1)){
     const e = {}; for(const [k,i] of Object.entries(col)) e[k]=get(r,i);
     if(!e.team && !e.project) continue;
-    e.id = hashId([e.submittedAt, e.team, e.project].join('|').toLowerCase());
+    e.id = hashId([e.team, e.project].map(x=>x.trim().replace(/\s+/g,' ')).join('|').toLowerCase());
     out.push(e);
   }
   if(!out.length) throw new Error('No submissions with a team name or project title were found.');
