@@ -621,7 +621,7 @@ function renderAdmin(){
   renderWho();
   const n = A.jury.filter(j=>j.submitted).length;
   let h = juryStrip(A.jury, null);
-  const tabs = [['subs','01','Submissions',`${A.entries.length} teams`],['upload','02','Upload submissions','CSV or Excel'],['results','03','Results',`${n}/${A.jury.length} judges`]];
+  const tabs = [['subs','01','Submissions',`${A.entries.length} team${A.entries.length===1?"":"s"}`],['upload','02','Upload submissions','CSV or Excel'],['results','03','Results',`${n}/${A.jury.length} judges`]];
   if(isAdm) tabs.push(['manage','04','Manage','Entries & judges']);
   h += `<nav class="tabs" role="tablist" style="grid-template-columns:repeat(${tabs.length},1fr)">` + tabs.map(([k,num,l,s])=>`<button class="tab ${adminTab===k?'on':''}" data-atab="${k}"><span class="num">${num}</span><span class="lbl">${l}</span><span class="prog"><span>${s}</span></span></button>`).join('') + `</nav>`;
   h += `<section class="view">`;
