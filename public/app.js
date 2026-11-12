@@ -523,7 +523,7 @@ async function poll(){
   if(!S || ADMIN || document.hidden || pending.size || saving) return;
   try{
     const fresh = await api('/api/state?k='+encodeURIComponent(KEY));
-    const changed = JSON.stringify([fresh.jury,fresh.entries,fresh.allIn,fresh.mine.submitted]) !== JSON.stringify([S.jury,S.entries,S.allIn,S.mine.submitted]);
+    const changed = JSON.stringify([fresh.jury,fresh.entries,fresh.allIn,fresh.mine.submitted,fresh.mine.scores]) !== JSON.stringify([S.jury,S.entries,S.allIn,S.mine.submitted,S.mine.scores]); // includes scores, so edits made on another device appear here
     if(changed){
       fresh.jury.filter(j=>j.submitted && !S.jury.find(o=>o.id===j.id)?.submitted && j.id!==S.judge.id).forEach(j=>toast(`${j.name} has submitted ✓`));
       if(fresh.entries.length > S.entries.length) toast(`${fresh.entries.length - S.entries.length} new submission(s) loaded`);
@@ -702,5 +702,5 @@ if(ADMIN){
     api('/api/admin',{method:'POST',body:JSON.stringify({k:ADMIN,action:'state'})}).then(x=>{ if(JSON.stringify([x.jury,x.allIn,x.entries])!==JSON.stringify([A.jury,A.allIn,A.entries])){ A=x; S=x; render(); } }).catch(()=>{}); }, 20000);
 }
 else if(!KEY){ $app.innerHTML = `<div class="waiting"><h3 class="cond">Personal link needed</h3><p>Each judge has a private link sent by email. Open that link to reach your scorecard.</p></div>`; }
-else { load(); setInterval(poll, 12000); document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) poll(); }); }
+else { load(); setInterval(poll, 8000); window.addEventListener('focus', poll); document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) poll(); }); }
 })();
