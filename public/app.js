@@ -20,8 +20,11 @@ const QMAP = [ // submission questions, aligned with the criteria
 const ICON = {
   expand:'<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>',
   play:'<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z" fill="currentColor" stroke="none"/></svg>',
+  doc:'<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>',
   upload:'<svg class="ic big" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M6 10l6-6 6 6M4 20h16"/></svg>',
 };
+const CRITERIA_PDF = '/docs/Brainstorm-PTW-2026-evaluation-criteria.pdf';
+const pdfBtn = (cls='btn sm') => `<a class="${cls}" href="${CRITERIA_PDF}" target="_blank" rel="noopener">${ICON.doc} Scoring criteria (PDF)</a>`;
 const LEVELS = ['Not at all','Very poorly','Partially','Clearly','Very clearly','Exceptionally'];
 const LEVELS_FULL = ['Not at all','Very poorly','Partially','Clearly','Very clearly','Exceptionally clearly'];
 const LOGO = {
@@ -112,7 +115,7 @@ function renderMeta(){
   let dl;
   if(diff > 0){ const h=Math.floor(diff/3.6e6), mi=Math.floor(diff%3.6e6/6e4); dl = `<span class="chip live"><span class="pip"></span>Submissions close <b>Thu 21:00</b> · in ${h}h ${String(mi).padStart(2,'0')}m</span>`; }
   else dl = `<span class="chip">Submissions <b>closed</b> Thu 21:00</span>`;
-  m.innerHTML = dl + `<span class="chip">Final pitches &amp; awards <b>Friday</b> · PTW Palace, Lisbon</span><span class="chip">Max score <b>20</b> · 4 criteria × 0–5</span>`;
+  m.innerHTML = dl + `<span class="chip">Final pitches &amp; awards <b>Friday</b> · PTW Palace, Lisbon</span><span class="chip">Max score <b>20</b> · 4 criteria × 0–5</span><a class="chip chip-link" href="${CRITERIA_PDF}" target="_blank" rel="noopener">${ICON.doc} Brainstorm scoring criteria <b>PDF</b></a>`;
 }
 renderMeta(); setInterval(renderMeta, 30000);
 
@@ -174,7 +177,7 @@ function showInfo(btn){
   const v = entryId ? ((S?.mine?.scores?.[entryId]||{})[phase]||{})[k] : undefined;
   pop.innerHTML = `<button class="x" aria-label="Close">×</button><div class="sub-h" style="margin:0">Criterion ${c.n} of 4 · scored 0–5</div><h4 class="cond">${esc(c.name)}</h4><p class="q">${esc(c.q)}</p>
     <ol>${c.d.map((d,i)=>`<li class="${v===i?'cur':''}"><b>${i}</b><span><em>${LEVELS_FULL[i]}</em>${esc(d)}</span></li>`).join('')}</ol>
-    <div class="foot">Brainstorm evaluation criteria · Portugal Tech Week 2026</div>`;
+    <div class="foot">Brainstorm evaluation criteria · <a href="${CRITERIA_PDF}" target="_blank" rel="noopener">open the full PDF</a></div>`;
   pop.classList.add('on'); popFor = btn.dataset.info;
   document.querySelectorAll('.info[aria-expanded=true]').forEach(b=>b.setAttribute('aria-expanded','false'));
   btn.setAttribute('aria-expanded','true');
@@ -388,7 +391,7 @@ function viewPre(){
   const [done,n] = phaseProgress('pre');
   let h = `<div class="intro"><div><h2 class="cond">Pre-demo review</h2>
     <p>Read each submission and try the prototype before Friday, then give your first impression. Only you can see these scores. Tap <b style="font-family:Georgia,serif;font-style:italic;color:var(--blue)">i</b> next to a criterion for Brainstorm's full scale. Tap a selected score again to clear it.</p></div>
-    <div style="display:flex;gap:8px;align-items:center"><span class="pill ${done===n?'ok':''}">${done}/${n} teams scored</span><button class="btn sm" data-show="0">${ICON.expand} Browse submissions</button></div></div>`;
+    <div style="display:flex;gap:8px;align-items:center"><span class="pill ${done===n?'ok':''}">${done}/${n} teams scored</span><button class="btn sm" data-show="0">${ICON.expand} Browse submissions</button>${pdfBtn()}</div></div>`;
   if(S.mine.submitted) h += lockedBanner();
   list.forEach((e,i) => {
     const sc = S.mine.scores[e.id] || {};
@@ -478,7 +481,7 @@ function viewFinal(){
     myRanking().map((x,i)=>`<li><span class="r">${x.t===null?'·':i+1}</span><span class="nm">${esc(x.e.project||x.e.team)}</span><span class="sc">${x.t===null?'—':x.t}</span></li>`).join('') +
     `</ol>` + (S.mine.submitted ? `<button class="btn" style="width:100%" data-reopenself="1">Reopen to edit</button>` :
     `<button class="btn primary" id="submitBtn" style="width:100%" ${complete?'':'disabled'}>Submit my final scores</button>
-     ${complete?'':'<p style="font-size:13px;color:var(--muted);margin:10px 0 0">Give every team a final score on all four criteria to submit.</p>'}`) + `</aside></div>`;
+     ${complete?'':'<p style="font-size:13px;color:var(--muted);margin:10px 0 0">Give every team a final score on all four criteria to submit.</p>'}`) + `<div style="margin-top:14px">${pdfBtn('btn sm ghost')}</div></aside></div>`;
   return h;
 }
 function viewResults(){
@@ -624,7 +627,7 @@ function renderAdmin(){
   h += `<section class="view">`;
   if(adminTab==='subs'){
     h += `<div class="intro"><div><h2 class="cond">Submissions</h2><p>Every team's submission, ready to read or present. Open one to see it full screen, and use ← → to move between teams.</p></div>
-      ${A.entries.length?`<button class="btn primary" data-show="0">${ICON.play} Present all</button>`:''}</div>` + gallery();
+      <div style="display:flex;gap:8px">${pdfBtn('btn')}${A.entries.length?`<button class="btn primary" data-show="0">${ICON.play} Present all</button>`:''}</div></div>` + gallery();
   }
   if(adminTab==='upload'){
     h += `<div class="intro"><div><h2 class="cond">Upload submissions</h2><p>Download the Google Form responses as <b>CSV</b> (or Excel) and drop the file here. You'll see a preview before anything changes. Uploading an updated file later adds new teams and refreshes existing ones, and it never removes judges' scores. Contact emails and phone numbers are not imported.</p></div></div>
