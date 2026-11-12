@@ -16,7 +16,7 @@ function match(list, k) {
 }
 export function judges() { return CONFIG.judges; }
 export function judgeByKey(k) { return match(CONFIG.judges, k); }
-export function viewerByKey(k) { return match(CONFIG.viewers, k); }
+export function viewerByKey(k) { return match(CONFIG.organisers, k); }
 export function isAdmin(k) { return !!match(CONFIG.admins, k); }
 export function publicJudge(j) { return { id: j.id, name: j.name, org: j.org }; }
 

@@ -8,6 +8,15 @@ export default async function handler(req, res) {
     if (!judge) return send(res, 401, { error: 'Invalid link' });
 
     const [doc, entries] = await Promise.all([getJudgeDoc(judge.id), getEntries()]);
+
+    // A judge can always reopen their own scorecard to edit it; their tick is removed until they resubmit.
+    if (b.action === 'withdraw') {
+      doc.submitted = false;
+      doc.submittedAt = null;
+      await writeDoc('judge-' + judge.id, doc);
+      return send(res, 200, { ok: true });
+    }
+
     if (doc.submitted) return send(res, 200, { ok: true, already: true });
     if (!entries.length) return send(res, 400, { error: 'There are no entries to score yet.' });
 

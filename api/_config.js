@@ -32,7 +32,15 @@ export const CONFIG = {
    "hash": "667f39e3409cfa0d91a7fece2d938e4640b4e847f4987b74d50e487c89a850bb"
   }
  ],
- "viewers": [
+ "admins": [
+  {
+   "id": "admin",
+   "name": "John McCoy",
+   "org": "Organiser",
+   "hash": "f11d25e3b05785bc908222dffdb158d74f0720a082210090ccb503573757bea5"
+  }
+ ],
+ "organisers": [
   {
    "id": "michal",
    "name": "Michal",
@@ -44,14 +52,6 @@ export const CONFIG = {
    "name": "Katia",
    "org": "Portugal Tech Week",
    "hash": "76058e79a2c9699c0be951dcaf730e4cbdb73ec2a0e22a0f2262e28d3fed5cc2"
-  }
- ],
- "admins": [
-  {
-   "id": "admin",
-   "name": "John McCoy",
-   "org": "Organiser",
-   "hash": "f11d25e3b05785bc908222dffdb158d74f0720a082210090ccb503573757bea5"
   }
  ]
 };
