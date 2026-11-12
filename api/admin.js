@@ -1,6 +1,6 @@
 import { isAdmin, viewerByKey, getEntries, writeDoc, statusAll, computeResults, getJudgeDoc, body, send } from './_lib.js';
 
-const FIELDS = ['team', 'project', 'link', 'access', 'q1', 'q2', 'q3', 'q4', 'comments', 'submittedAt'];
+const FIELDS = ['team', 'project', 'link', 'access', 'q1', 'q2', 'q3', 'q4', 'comments', 'submittedAt', 'extra'];
 
 function cleanEntry(e, i) {
   const s = v => (typeof v === 'string' ? v.trim().slice(0, 8000) : (v == null ? '' : String(v).slice(0, 8000)));

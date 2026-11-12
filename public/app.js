@@ -199,12 +199,13 @@ function renderShow(){
       <h2 class="cond">${esc(e.project||'Untitled project')}</h2>
       <div class="team">by <b>${esc(e.team||'—')}</b>${when}</div>
       <div class="show-cta">
-        ${e.link?`<a class="linkbtn" href="${esc(safeUrl(e.link))}" target="_blank" rel="noopener noreferrer">Open prototype ↗</a>`:'<span class="pill">No prototype link</span>'}
-        <div class="acc"><b>How to access it</b>${esc(e.access||'No access instructions given.')}</div>
+        ${firstLink(e)?`<a class="linkbtn" href="${esc(safeUrl(firstLink(e)))}" target="_blank" rel="noopener noreferrer">Open prototype ↗</a>`:'<span class="pill">No prototype link</span>'}
+        <div class="acc"><b>How to access it</b>${e.access?linkify(e.access):'No access instructions given.'}</div>
       </div>
+      ${mediaBlock(e)}
       <div class="qgrid">${QMAP.map(q=>`<div class="qcard" style="--cc:${q.c}"><div class="qh"><span class="qn">${q.n}</span><div><h5 class="cond">${q.title}</h5><div class="qs">${q.sub}</div></div></div>
-        <div class="tx">${e[q.k]?esc(e[q.k]):'<span style="color:var(--dim)">No answer given.</span>'}</div></div>`).join('')}</div>
-      ${e.comments?`<div class="quote"><b>In the team's own words</b>${esc(e.comments)}</div>`:''}
+        <div class="tx">${e[q.k]?linkify(e[q.k]):'<span style="color:var(--dim)">No answer given.</span>'}</div></div>`).join('')}</div>
+      ${e.comments?`<div class="quote"><b>In the team's own words</b>${linkify(e.comments)}</div>`:''}
       <div class="dots">${list.map((_,i)=>`<button class="${i===showIdx?'on':''}" data-showgo="${i}" aria-label="Submission ${i+1}"></button>`).join('')}</div>
     </div>`;
 }
@@ -234,7 +235,7 @@ function gallery(){
     <span class="no">SUBMISSION ${String(i+1).padStart(2,'0')}</span>
     <h4>${esc(e.project||'Untitled project')}</h4><span class="tm">${esc(e.team)}</span>
     <p>${esc(e.q1||e.q3||'')}</p>
-    <span class="foot"><span>${e.link?'Prototype link ✓':'No prototype link'}</span><b>View submission →</b></span></button>`).join('') + `</div>`;
+    <span class="foot"><span>${urlsIn(e).length?`${urlsIn(e).length} link${urlsIn(e).length===1?'':'s'} · ${[...new Set(urlsIn(e).map(r=>r.icon))].join(' ')}`:'No links'}</span><b>View submission →</b></span></button>`).join('') + `</div>`;
 }
 function heat(v){ if(v===null||v===undefined) return '—'; const a = Math.max(0, Math.min(1, v/20)); return `<span class="heat" style="background:rgba(232,100,44,${(0.08+a*0.5).toFixed(2)})">${v}</span>`; }
 function resultsBlock(R, opts={}){
@@ -298,12 +299,72 @@ function scorer(entryId, phase, opts={}){
 }
 function ring(sc){ const t=total(sc), pc=partial(sc), p=sumPartial(sc);
   return `<span class="ring ${t!==null?'full':''}" style="--v:${(t===null?p:t)/20*100}" title="${t===null?pc+'/4 criteria scored':t+' out of 20'}"><span class="${t===null?'e':''}">${t===null?(pc?pc+'/4':'—'):t}</span></span>`; }
+
+// ---------- links, videos and files inside a submission ----------
+const URL_RE = /https?:\/\/[^\s<>"')\]]+/gi;
+function urlsIn(e){
+  const seen = new Set(), out = [];
+  const add = (u, from) => { u = u.replace(/[.,;:!?]+$/, ''); const k = u.toLowerCase(); if(!seen.has(k)){ seen.add(k); out.push({ url:u, from }); } };
+  (String(e.link||'').match(URL_RE)||[]).forEach(u=>add(u,'link'));
+  ['extra','access','q3','q1','q2','q4','comments'].forEach(f => (String(e[f]||'').match(URL_RE)||[]).forEach(u=>add(u,f)));
+  return out.map(r => ({ ...r, ...classify(r.url) }));
+}
+function driveId(u){
+  let m = u.match(/drive\.google\.com\/file\/d\/([\w-]{10,})/) || u.match(/[?&]id=([\w-]{10,})/) || u.match(/docs\.google\.com\/(?:document|presentation|spreadsheets)\/d\/([\w-]{10,})/);
+  return m ? m[1] : null;
+}
+function classify(u){
+  let host = ''; try{ host = new URL(u).hostname.replace(/^www\./,''); }catch{}
+  const path = u.split('?')[0].toLowerCase();
+  const yt = u.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{11})/);
+  if(yt) return { kind:'video', label:'YouTube video', icon:'▶', embed:`https://www.youtube-nocookie.com/embed/${yt[1]}` };
+  const loom = u.match(/loom\.com\/(?:share|embed)\/([\w]+)/);
+  if(loom) return { kind:'video', label:'Loom video', icon:'▶', embed:`https://www.loom.com/embed/${loom[1]}` };
+  const vimeo = u.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  if(vimeo) return { kind:'video', label:'Vimeo video', icon:'▶', embed:`https://player.vimeo.com/video/${vimeo[1]}` };
+  if(/drive\.google\.com\/drive\/(?:u\/\d+\/)?folders\//.test(u)) return { kind:'folder', label:'Google Drive folder', icon:'🗂' };
+  if(/docs\.google\.com\/document\//.test(u)) return { kind:'doc', label:'Google Doc', icon:'📄', embed: driveId(u) ? `https://docs.google.com/document/d/${driveId(u)}/preview` : null };
+  if(/docs\.google\.com\/presentation\//.test(u)) return { kind:'doc', label:'Google Slides', icon:'🖼', embed: driveId(u) ? `https://docs.google.com/presentation/d/${driveId(u)}/preview` : null };
+  if(/docs\.google\.com\/spreadsheets\//.test(u)) return { kind:'sheet', label:'Google Sheet', icon:'📊', embed: driveId(u) ? `https://docs.google.com/spreadsheets/d/${driveId(u)}/preview` : null };
+  if(host==='drive.google.com' && driveId(u)) return { kind:'drive', label:'Google Drive file', icon:'📎', embed:`https://drive.google.com/file/d/${driveId(u)}/preview` };
+  if(/\.(png|jpe?g|gif|webp|svg)$/.test(path)) return { kind:'image', label:'Image', icon:'🖼', img:u };
+  if(/\.(mp4|webm|mov)$/.test(path)) return { kind:'video', label:'Video file', icon:'▶', file:u };
+  if(/\.pdf$/.test(path)) return { kind:'doc', label:'PDF', icon:'📄' };
+  if(/\.docx?$/.test(path)) return { kind:'doc', label:'Word document', icon:'📄' };
+  if(/\.(csv|xlsx?)$/.test(path)) return { kind:'sheet', label:'Spreadsheet', icon:'📊' };
+  if(host==='github.com') return { kind:'code', label:'GitHub repo', icon:'⌨' };
+  if(host==='figma.com') return { kind:'design', label:'Figma file', icon:'✎' };
+  return { kind:'web', label: host || 'Link', icon:'↗' };
+}
+const FROM_LABEL = { link:'Prototype / demo field', extra:'Extra form field', access:'Access instructions', q1:'Answer 1', q2:'Answer 2', q3:'Answer 3', q4:'Answer 4', comments:'Comments' };
+function resourceChips(e){
+  const rs = urlsIn(e); if(!rs.length) return '';
+  return `<div class="res-list">` + rs.map(r=>`<a class="res" href="${esc(safeUrl(r.url))}" target="_blank" rel="noopener noreferrer" title="${esc(r.url)}"><span class="ri">${r.icon}</span><span class="rt"><b>${esc(r.label)}</b><small>${esc(shortUrl(r.url))}</small></span><span class="ra">↗</span></a>`).join('') + `</div>`;
+}
+function shortUrl(u){ try{ const x=new URL(u); const p=(x.pathname.length>28?x.pathname.slice(0,28)+'…':x.pathname); return x.hostname.replace(/^www\./,'')+p; }catch{ return u.slice(0,40); } }
+function mediaBlock(e){
+  const rs = urlsIn(e); if(!rs.length) return '';
+  const embeds = rs.filter(r=>r.embed||r.img||r.file).slice(0,4);
+  let h = `<div class="media"><div class="media-h"><h5 class="cond">Demo &amp; materials</h5><span>${rs.length} link${rs.length===1?'':'s'} in this submission</span></div>`;
+  if(embeds.length) h += `<div class="embeds">` + embeds.map(r => {
+    const inner = r.img ? `<img src="${esc(safeUrl(r.img))}" alt="${esc(r.label)}" loading="lazy" referrerpolicy="no-referrer">`
+      : r.file ? `<video src="${esc(safeUrl(r.file))}" controls preload="metadata"></video>`
+      : `<iframe src="${esc(r.embed)}" loading="lazy" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="${esc(r.label)}"></iframe>`;
+    return `<figure class="embed ${r.kind}"><div class="frame">${inner}</div><figcaption><span>${r.icon} ${esc(r.label)}</span><a href="${esc(safeUrl(r.url))}" target="_blank" rel="noopener noreferrer">Open ↗</a></figcaption></figure>`; }).join('') + `</div>
+    <p class="media-note">If a Google Drive preview says you need access, the team hasn't shared it publicly. Use "Open ↗" to view it with your own Google account.</p>`;
+  h += resourceChips(e) + `</div>`;
+  return h;
+}
+
+function linkify(t){ return esc(t).replace(/https?:\/\/[^\s<>"']+/g, m => { const u = m.replace(/[.,;:!?)]+$/,''); const tail = m.slice(u.length); return `<a href="${u}" target="_blank" rel="noopener noreferrer">${u}</a>${tail}`; }); }
+function firstLink(e){ const m = String(e.link||'').match(URL_RE); return m ? m[0].replace(/[.,;:!?]+$/,'') : ''; }
 function submissionBrief(e, i){
-  return `<div class="linkrow">${e.link?`<a class="linkbtn" href="${esc(safeUrl(e.link))}" target="_blank" rel="noopener noreferrer">Open prototype ↗</a>`:'<span class="pill">No prototype link</span>'}
+  return `<div class="linkrow">${firstLink(e)?`<a class="linkbtn" href="${esc(safeUrl(firstLink(e)))}" target="_blank" rel="noopener noreferrer">Open prototype ↗</a>`:'<span class="pill">No prototype link</span>'}
     <button class="btn" data-show="${i}">⤢ Full submission</button></div>
     <div class="access">${e.access ? `<b>Access:</b> ${esc(e.access)}` : ''}</div>
-    <div class="answers">` + QMAP.filter(q=>e[q.k]).map((q,j)=>`<details ${j===0?'open':''}><summary>${q.n}. ${q.title}</summary><div class="a">${esc(e[q.k])}</div></details>`).join('') +
-    (e.comments?`<details><summary>Team's comments</summary><div class="a">${esc(e.comments)}</div></details>`:'') + `</div>`;
+    ${urlsIn(e).length>1 || (urlsIn(e).length===1 && urlsIn(e)[0].url!==firstLink(e)) ? `<p class="sub-h">Links &amp; files (${urlsIn(e).length})</p>${resourceChips(e)}` : ''}
+    <div class="answers">` + QMAP.filter(q=>e[q.k]).map((q,j)=>`<details ${j===0?'open':''}><summary>${q.n}. ${q.title}</summary><div class="a">${linkify(e[q.k])}</div></details>`).join('') +
+    (e.comments?`<details><summary>Team's comments</summary><div class="a">${linkify(e.comments)}</div></details>`:'') + `</div>`;
 }
 function lockedBanner(){
   return `<div class="banner ok"><span class="tick">✓</span><span class="grow"><b>You've submitted.</b> Your scores count in the results. To change anything, reopen your scorecard, edit, then submit again.</span><button class="btn sm" data-reopenself="1">Reopen to edit</button></div>`;
@@ -348,7 +409,7 @@ function viewLive(){
     return `<button class="pick ${i===liveIdx?'on':''}" data-live="${i}">${t!==null?'<span class="ok">✓</span>':''}${i+1}. ${esc(x.project||x.team)}</button>`;}).join('') + `</div>`;
   h += `<div class="stage"><div class="grid2">
       <div><div class="sub-h">Now presenting · team ${liveIdx+1} of ${list.length}</div><h3 class="cond">${esc(e.project||'Untitled project')}</h3><div class="team">${esc(e.team)}</div>
-        <div class="linkrow" style="margin-top:18px">${e.link?`<a class="linkbtn" href="${esc(safeUrl(e.link))}" target="_blank" rel="noopener noreferrer">Open prototype ↗</a>`:''}<button class="btn" data-show="${liveIdx}">⤢ Full submission</button></div>
+        <div class="linkrow" style="margin-top:18px">${firstLink(e)?`<a class="linkbtn" href="${esc(safeUrl(firstLink(e)))}" target="_blank" rel="noopener noreferrer">Open prototype ↗</a>`:''}<button class="btn" data-show="${liveIdx}">⤢ Full submission</button></div>
         <p class="sub-h" style="margin-top:20px">What teams were asked to show</p>
         <ol style="color:#d4d4d8;font-size:14px;padding-left:18px;margin:0 0 6px">
           <li>Who it's for and where they get stuck</li><li>What they learned that shaped their approach</li>
@@ -566,7 +627,7 @@ function renderAdmin(){
   if(adminTab==='manage' && isAdm){
     h += `<div class="banner info"><span class="grow">Reopen a judge's scorecard on their behalf:</span>${A.jury.filter(j=>j.submitted).map(j=>`<button class="btn sm" data-reopen="${j.id}">Reopen ${esc(j.name.split(' ')[0])}</button>`).join('') || '<span style="color:var(--muted);font-size:13px">nobody has submitted yet</span>'}</div>`;
     h += `<h3 class="cond sec">Entries (${A.entries.length})</h3><div class="tablewrap"><table><thead><tr><th>#</th><th>Project</th><th>Team</th><th>Prototype</th><th></th></tr></thead><tbody>` +
-      (A.entries.length ? A.entries.map((e,i)=>`<tr><td>${i+1}</td><td class="proj"><b>${esc(e.project)}</b></td><td>${esc(e.team)}</td><td>${e.link?`<a href="${esc(safeUrl(e.link))}" target="_blank" rel="noopener noreferrer">Open ↗</a>`:'—'}</td>
+      (A.entries.length ? A.entries.map((e,i)=>`<tr><td>${i+1}</td><td class="proj"><b>${esc(e.project)}</b></td><td>${esc(e.team)}</td><td>${firstLink(e)?`<a href="${esc(safeUrl(firstLink(e)))}" target="_blank" rel="noopener noreferrer">Open ↗</a>`:'—'}</td>
         <td style="text-align:right"><button class="btn sm ghost" data-edit="${i}">Edit</button> <button class="btn sm ghost" data-up="${i}" ${i===0?'disabled':''}>↑</button> <button class="btn sm danger" data-del="${i}">Delete</button></td></tr>`).join('')
         : `<tr><td colspan="5" style="color:var(--muted)">No entries yet.</td></tr>`) + `</tbody></table></div>`;
     const e = editing!==null ? A.entries[editing] : {};
@@ -650,9 +711,13 @@ function mapRows(rows){
   };
   if(col.team<0 && col.project<0) throw new Error("Couldn't find the Team Name or Project Title columns. Is this the Google Form responses export?");
   const get = (r,i) => i<0 ? '' : String(r[i]??'').trim();
+  const used = new Set(Object.values(col));
+  const skip = h => /e-?mail|whatsapp|phone|telefone|terms|declare|code of conduct/.test(h);
+  const extraCols = head.map((h,i)=>i).filter(i => !used.has(i) && !skip(head[i]));
   const out = [];
   for(const r of clean.slice(1)){
     const e = {}; for(const [k,i] of Object.entries(col)) e[k]=get(r,i);
+    e.extra = extraCols.map(i => { const v = get(r,i); return /https?:\/\//i.test(v) ? `${clean[0][i]}: ${v}` : ''; }).filter(Boolean).join('\n');
     if(!e.team && !e.project) continue;
     e.id = hashId([e.team, e.project].map(x=>x.trim().replace(/\s+/g,' ')).join('|').toLowerCase());
     out.push(e);
