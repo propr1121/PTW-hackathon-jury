@@ -85,7 +85,14 @@ function niceDate(v){
 function entries(){ return (S && S.entries) || []; }
 
 // ---------- header / meta ----------
+function demoRibbon(){
+  if(!S || !S.demo || document.getElementById('demoRibbon')) return;
+  const d=document.createElement('div'); d.id='demoRibbon'; d.className='demo-ribbon';
+  d.innerHTML='<b>DEMO</b> Practice site with mock teams and scores. Nothing here affects the real event.';
+  document.body.prepend(d);
+}
 function renderWho(){
+  demoRibbon();
   const w = document.getElementById('who');
   const save = `<span class="save"><span class="dot" id="saveDot"></span><span id="saveTxt"></span></span>`;
   if(ADMIN && S) w.innerHTML = `<span class="me-chip"><span class="avatar c3">${initials(S.viewerName)}</span><span class="nm">${S.role==='admin'?'Admin':'Organiser'} · <b>${esc(S.viewerName||'')}</b></span></span>`;

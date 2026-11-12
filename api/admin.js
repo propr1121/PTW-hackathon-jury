@@ -1,4 +1,4 @@
-import { isAdmin, viewerByKey, getEntries, writeDoc, statusAll, computeResults, getJudgeDoc, body, send } from './_lib.js';
+import { IS_DEMO, isAdmin, viewerByKey, getEntries, writeDoc, statusAll, computeResults, getJudgeDoc, body, send } from './_lib.js';
 
 const FIELDS = ['team', 'project', 'link', 'access', 'q1', 'q2', 'q3', 'q4', 'comments', 'submittedAt', 'extra'];
 
@@ -28,6 +28,7 @@ export default async function handler(req, res) {
         entries,
         jury: status.map(({ _doc, ...s }) => s),
         allIn,
+        demo: IS_DEMO,
         results: allIn ? computeResults(entries, status) : null,
       });
     }
@@ -65,6 +66,14 @@ export default async function handler(req, res) {
       doc.submitted = false;
       doc.submittedAt = null;
       await writeDoc('judge-' + id, doc);
+      return send(res, 200, { ok: true });
+    }
+
+    if (b.action === 'resetDemo') {
+      if (!IS_DEMO) return send(res, 403, { error: 'Reset is only available on the demo site.' });
+      const { judges } = await import('./_lib.js');
+      await writeDoc('entries', { entries: [], updatedAt: new Date().toISOString() });
+      for (const j of judges()) await writeDoc('judge-' + j.id, { scores: {}, submitted: false, submittedAt: null });
       return send(res, 200, { ok: true });
     }
 

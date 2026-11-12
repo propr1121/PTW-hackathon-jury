@@ -3,7 +3,9 @@ import { put, get } from '@vercel/blob';
 export const CRITERIA = ['up', 'ld', 'pu', 'vn'];
 export const PHASES = ['pre', 'live', 'final'];
 
-const PREFIX = () => (process.env.DATA_PREFIX || 'ptw-jury-2026').replace(/[^a-zA-Z0-9_-]/g, '');
+// Production keeps the real data; every other deployment (e.g. the demo branch) uses a separate demo store.
+export const IS_DEMO = process.env.VERCEL_ENV !== 'production' && process.env.LOCAL_MEMORY !== '1';
+const PREFIX = () => (process.env.DATA_PREFIX || (process.env.VERCEL_ENV === 'production' ? 'ptw-jury-2026' : 'ptw-jury-demo')).replace(/[^a-zA-Z0-9_-]/g, '');
 
 import { createHash } from 'node:crypto';
 import { CONFIG } from './_config.js';

@@ -1,4 +1,4 @@
-import { judgeByKey, getEntries, statusAll, computeResults, publicJudge, send } from './_lib.js';
+import { IS_DEMO, judgeByKey, getEntries, statusAll, computeResults, publicJudge, send } from './_lib.js';
 
 export default async function handler(req, res) {
   try {
@@ -17,6 +17,7 @@ export default async function handler(req, res) {
       mine: { scores: me._doc.scores || {}, submitted: !!me._doc.submitted, submittedAt: me._doc.submittedAt || null },
       jury: status.map(({ _doc, ...s }) => s),
       allIn,
+      demo: IS_DEMO,
       results: allIn ? computeResults(entries, status) : null,
     });
   } catch (e) {

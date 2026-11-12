@@ -399,3 +399,5 @@ main.wrap{padding-bottom:80px}
 @media (max-width:600px){.embeds{grid-template-columns:1fr}}
 .answers .a,.qcard .tx,.quote,.show-cta .acc{overflow-wrap:anywhere}
 .answers .a a,.qcard .tx a,.quote a,.show-cta .acc a{color:var(--blue)}
+.demo-ribbon{position:relative;z-index:40;background:repeating-linear-gradient(135deg,#E8642C 0 14px,#d4561f 14px 28px);color:#140800;font-size:13px;font-weight:600;text-align:center;padding:7px 12px}
+.demo-ribbon b{background:#140800;color:#ff8a4f;padding:1px 8px;border-radius:4px;margin-right:8px;letter-spacing:.1em}
